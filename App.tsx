@@ -14,6 +14,7 @@ import {
 import React, {useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors} from './src/constants/constants';
+import Icon from 'react-native-vector-icons/EvilIcons';
 
 const App = () => {
   const [input, setInput] = useState<string>('');
@@ -61,7 +62,7 @@ const App = () => {
             locations.map(location => {
               return (
                 <TouchableOpacity style={styles.locations} key={location.id}>
-                  <Text>⚓</Text>
+                  <Icon name="location" size={15} />
                   <Text style={styles.locationText}>
                     {location.city}, {location.country}
                   </Text>
