@@ -7,24 +7,23 @@ import {
   Image,
   Button,
   TouchableHighlight,
-  NativeSyntheticEvent,
-  TextInputChangeEventData,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors} from '../constants/constants';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import SearchIcon from 'react-native-vector-icons/Ionicons';
-import {
-  ICurrent,
-  ILocation,
-  IWeather,
-  RootStackParamList,
-} from '../types/types';
+import {ILocation, IWeather, RootStackParamList} from '../types/types';
+import FeatherIcon from 'react-native-vector-icons/Feather';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
+
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {fetchLocations, fetchWeather} from '../helpers/fetchData';
 import {getItem, storeData} from '../helpers/storeData';
+import DialyForecast from '../components/DialyForecast';
 
 type HomeProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -69,6 +68,7 @@ const HomeScreen = () => {
       setWeather(weather);
     }
     fetchWeatherOnStart();
+    console.log(weather);
   }, []);
 
   const {current, location} = weather;
@@ -89,12 +89,15 @@ const HomeScreen = () => {
               onChangeText={handleInput}
               style={[
                 styles.textInput,
-                {display: showSearchBar ? 'flex' : 'none'},
+                {
+                  display: showSearchBar ? 'flex' : 'none',
+                },
               ]}
-              placeholder="Search for a location..."
+              placeholder="Search city..."
               placeholderTextColor={Colors.white}
             />
-            <TouchableHighlight
+            <TouchableOpacity
+              activeOpacity={0.3}
               onPress={handleSearch}
               style={styles.searchButton}>
               <SearchIcon
@@ -102,7 +105,7 @@ const HomeScreen = () => {
                 name="md-search-outline"
                 size={15}
               />
-            </TouchableHighlight>
+            </TouchableOpacity>
           </View>
           <View style={styles.locationContainer}>
             {input.length > 2 &&
@@ -113,8 +116,8 @@ const HomeScreen = () => {
                     style={styles.locations}
                     key={location.id}>
                     <Icon color={'black'} name="location" size={15} />
-                    <Text style={styles.locationText}>
-                      {location?.name}, {location?.country}
+                    <Text style={styles.locationText ?? 'hi'}>
+                      {location?.name ?? 'hi'}, {location?.country ?? 'hi'}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -125,8 +128,11 @@ const HomeScreen = () => {
             <View>
               {location && (
                 <Text style={styles.address}>
-                  {location?.name},
-                  <Text style={styles.country}> {location?.country}</Text>
+                  {location?.name ?? 'hji'},
+                  <Text style={styles.country}>
+                    {' '}
+                    {location?.country ?? 'hi'}
+                  </Text>
                 </Text>
               )}
             </View>
@@ -143,6 +149,38 @@ const HomeScreen = () => {
                 <Text style={styles.situation}>{current?.condition?.text}</Text>
               </View>
             )}
+            {/* //humidity and sunrise */}
+            <View style={styles.conditionContainer}>
+              <View style={styles.condition}>
+                <FeatherIcon color="white" name="wind" size={25} />
+                <Text style={styles.conditionText}>{current?.wind_kph}km</Text>
+              </View>
+              <View style={styles.condition}>
+                <EntypoIcon color="white" name="drop" size={25} />
+                <Text style={styles.conditionText}>{current?.humidity}%</Text>
+              </View>
+              <View style={styles.condition}>
+                <FeatherIcon color="white" name="sun" size={25} />
+                <Text style={styles.conditionText}>
+                  {weather?.forecast?.forecastday[0]?.astro?.sunrise}
+                </Text>
+              </View>
+            </View>
+            {/* dilay forecast */}
+          </View>
+          <View style={styles.dialyForecast}>
+            <View style={styles.forecastTitle}>
+              <Icon color={'white'} name="calendar" size={25} />
+              <Text style={styles.forecastText}>Dialy Forecast</Text>
+            </View>
+            <ScrollView
+              horizontal
+              contentContainerStyle={{paddingHorizontal: 15}}
+              showsHorizontalScrollIndicator={false}>
+              {weather?.forecast?.forecastday?.map((item, index) => {
+                return <DialyForecast key={index} item={item} />;
+              })}
+            </ScrollView>
           </View>
         </SafeAreaView>
       </ImageBackground>
@@ -175,12 +213,14 @@ const styles = StyleSheet.create({
   },
   textInput: {
     color: Colors.white,
+    width: '85%',
   },
   searchButton: {
     flex: 1,
     alignItems: 'flex-end',
     textAlign: 'center',
     justifyContent: 'center',
+    height: 40,
   },
   searchIcon: {
     fontSize: 20,
@@ -235,6 +275,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   situation: {
+    color: Colors.white,
+  },
+  conditionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  condition: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  conditionText: {
+    color: Colors.white,
+    fontWeight: 'bold',
+  },
+  dialyForecast: {
+    justifyContent: 'flex-start',
+    width: '100%',
+    marginBottom: 20,
+  },
+  forecastTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 15,
+  },
+  forecastText: {
+    fontSize: 16,
     color: Colors.white,
   },
 });
