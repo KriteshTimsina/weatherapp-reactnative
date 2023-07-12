@@ -8,10 +8,14 @@ export type IWeatherCondition = {
   text: string;
   icon: string;
 };
+
+export type ICurrent = {
+  condition: IWeatherCondition;
+  temp_c: string;
+};
 export type IWeather = {
   location: ILocation;
-  temp_c: string;
-  current: IWeatherCondition;
+  current: ICurrent;
 };
 
 export type RootStackParamList = {

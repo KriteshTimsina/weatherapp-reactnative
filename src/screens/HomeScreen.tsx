@@ -16,9 +16,15 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors} from '../constants/constants';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import SearchIcon from 'react-native-vector-icons/Ionicons';
-import {ILocation, IWeather, RootStackParamList} from '../types/types';
+import {
+  ICurrent,
+  ILocation,
+  IWeather,
+  RootStackParamList,
+} from '../types/types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {fetchLocations, fetchWeather} from '../helpers/fetchData';
+import {getItem, storeData} from '../helpers/storeData';
 
 type HomeProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -27,6 +33,7 @@ const HomeScreen = () => {
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
   const [weather, setWeather] = useState<IWeather[]>([]);
   const [locations, setLocations] = useState<ILocation[]>([]);
+  console.log(weather);
 
   async function handleInput(value: string) {
     setInput(value);
@@ -45,12 +52,24 @@ const HomeScreen = () => {
 
   async function handleLocation(city: string) {
     setLocations([]);
-    setInput('');
     fetchWeather({location: city}).then(data => {
       setWeather(data);
     });
+    await storeData('city', city);
     console.log(weather);
   }
+
+  useEffect(() => {
+    async function fetchWeatherOnStart() {
+      const city = await getItem('city');
+      let cityName = 'kathmandu';
+      if (city) cityName = city;
+
+      const weather = await fetchWeather({location: cityName});
+      setWeather(weather);
+    }
+    fetchWeatherOnStart();
+  }, []);
 
   const {current, location} = weather;
   // console.log(current.condition.icon, typeof current.condition.icon);
@@ -104,10 +123,12 @@ const HomeScreen = () => {
 
           <View style={styles.weatherInfo}>
             <View>
-              <Text style={styles.address}>
-                {location?.name},
-                <Text style={styles.country}> {location?.country}</Text>
-              </Text>
+              {location && (
+                <Text style={styles.address}>
+                  {location?.name},
+                  <Text style={styles.country}> {location?.country}</Text>
+                </Text>
+              )}
             </View>
             <View>
               <Image
@@ -116,10 +137,12 @@ const HomeScreen = () => {
                 width={100}
               />
             </View>
-            <View style={styles.weatherData}>
-              <Text style={styles.temp}>{current?.temp_c}&#176;</Text>
-              <Text style={styles.situation}>{current?.condition?.text}</Text>
-            </View>
+            {location && (
+              <View style={styles.weatherData}>
+                <Text style={styles.temp}>{current?.temp_c}&#176;</Text>
+                <Text style={styles.situation}>{current?.condition?.text}</Text>
+              </View>
+            )}
           </View>
         </SafeAreaView>
       </ImageBackground>
