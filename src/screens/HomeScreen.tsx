@@ -11,45 +11,49 @@ import {
   TextInputChangeEventData,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors} from '../constants/constants';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import SearchIcon from 'react-native-vector-icons/Ionicons';
-import {RootStackParamList} from '../types/types';
+import {ILocation, IWeather, RootStackParamList} from '../types/types';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {fetchLocations, fetchWeather} from '../helpers/fetchData';
 
 type HomeProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
   const [input, setInput] = useState<string>('');
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
-  const [locations, setLocations] = useState([
-    {
-      id: 1,
-      city: 'Kualalampur',
-      country: 'Malaysia',
-    },
-    {
-      id: 2,
-      city: 'London',
-      country: 'Uk',
-    },
-    {
-      id: 3,
-      city: 'Kathmandu',
-      country: 'Nepal',
-    },
-  ]);
+  const [weather, setWeather] = useState<IWeather[]>([]);
+  const [locations, setLocations] = useState<ILocation[]>([]);
 
-  function handleSearch(value: string) {
+  async function handleInput(value: string) {
     setInput(value);
-    console.log(input);
+    if (value.length > 2) {
+      fetchLocations({cityName: value}).then(data => {
+        setLocations(data);
+      });
+    }
   }
 
-  function handleLocation(city: string) {
-    console.log(city);
+  async function handleSearch() {
+    setShowSearchBar(!showSearchBar);
+    const weather = await fetchWeather({location: input});
+    setWeather(weather);
   }
+
+  async function handleLocation(city: string) {
+    setLocations([]);
+    setInput('');
+    fetchWeather({location: city}).then(data => {
+      setWeather(data);
+    });
+    console.log(weather);
+  }
+
+  const {current, location} = weather;
+  // console.log(current.condition.icon, typeof current.condition.icon);
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -63,7 +67,7 @@ const HomeScreen = () => {
               {backgroundColor: showSearchBar ? Colors.gray : 'transparent'},
             ]}>
             <TextInput
-              onChangeText={handleSearch}
+              onChangeText={handleInput}
               style={[
                 styles.textInput,
                 {display: showSearchBar ? 'flex' : 'none'},
@@ -72,7 +76,7 @@ const HomeScreen = () => {
               placeholderTextColor={Colors.white}
             />
             <TouchableHighlight
-              onPress={() => setShowSearchBar(!showSearchBar)}
+              onPress={handleSearch}
               style={styles.searchButton}>
               <SearchIcon
                 style={styles.searchIcon}
@@ -86,12 +90,12 @@ const HomeScreen = () => {
               locations.map(location => {
                 return (
                   <TouchableOpacity
-                    onPress={() => handleLocation(location.city)}
+                    onPress={() => handleLocation(location?.name)}
                     style={styles.locations}
                     key={location.id}>
                     <Icon color={'black'} name="location" size={15} />
                     <Text style={styles.locationText}>
-                      {location.city}, {location.country}
+                      {location?.name}, {location?.country}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -101,15 +105,20 @@ const HomeScreen = () => {
           <View style={styles.weatherInfo}>
             <View>
               <Text style={styles.address}>
-                London, <Text style={styles.country}>United Kingdom</Text>
+                {location?.name},
+                <Text style={styles.country}> {location?.country}</Text>
               </Text>
             </View>
             <View>
-              <Image source={require('../assets/sunnyImage.png')} />
+              <Image
+                height={100}
+                source={{uri: 'https:' + current?.condition?.icon}}
+                width={100}
+              />
             </View>
             <View style={styles.weatherData}>
-              <Text style={styles.temp}>23&#176;</Text>
-              <Text style={styles.situation}>Partly cloudy</Text>
+              <Text style={styles.temp}>{current?.temp_c}&#176;</Text>
+              <Text style={styles.situation}>{current?.condition?.text}</Text>
             </View>
           </View>
         </SafeAreaView>
@@ -190,7 +199,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   country: {
-    fontSize: 18,
     fontWeight: 'normal',
     color: Colors.bgWhite(0.9),
   },
