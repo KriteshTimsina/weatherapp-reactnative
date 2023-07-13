@@ -23,6 +23,8 @@ import {fetchLocations, fetchWeather} from '../helpers/fetchData';
 import {getItem, storeData} from '../helpers/storeData';
 import DialyForecast from '../components/DialyForecast';
 
+import Geolocation from '@react-native-community/geolocation';
+
 const HomeScreen = () => {
   const [input, setInput] = useState<string>('');
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
@@ -30,6 +32,7 @@ const HomeScreen = () => {
   const [locations, setLocations] = useState<ILocation[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
+  const [coordinates, setCoordinates] = useState<any>();
 
   async function handleInput(value: string) {
     setInput(value);
@@ -56,6 +59,26 @@ const HomeScreen = () => {
     await storeData('city', city);
   }
 
+  const getOneTimeLocation = () => {
+    Geolocation.getCurrentPosition(
+      position => {
+        //Setting Longitude state
+        setCoordinates({
+          long: position.coords.longitude,
+          lat: position.coords.latitude,
+        });
+      },
+      error => {
+        console.log(error);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 30000,
+        maximumAge: 1000,
+      },
+    );
+  };
+
   useEffect(() => {
     async function requestLocationPermission() {
       try {
@@ -64,11 +87,12 @@ const HomeScreen = () => {
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           setIsLocationOn(true);
+          getOneTimeLocation();
         } else {
           setIsLocationOn(false);
         }
       } catch (err) {
-        console.warn(err);
+        console.log('eroror bajsjk', err);
       }
     }
     requestLocationPermission();
@@ -96,6 +120,13 @@ const HomeScreen = () => {
         source={require('../assets/bg.png')}
         style={styles.background}>
         <SafeAreaView style={{flex: 1}}>
+          <View>
+            <Text style={{color: 'yellow'}}>
+              {isLocationOn && 'location on'}
+            </Text>
+            <Text style={{color: 'yellow'}}>{coordinates.long}</Text>
+            <Text style={{color: 'yellow'}}>{coordinates.lat}</Text>
+          </View>
           <View
             style={[
               styles.searchbar,
