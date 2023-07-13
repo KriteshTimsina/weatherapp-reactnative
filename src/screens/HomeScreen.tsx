@@ -48,10 +48,6 @@ const HomeScreen = () => {
 
   async function handleSearchToggle() {
     setShowSearchBar(!showSearchBar);
-    // setLoading(true);
-    // const weather = await fetchWeather({location: input});
-    // setWeather(weather);
-    // setLoading(false);
   }
 
   async function handleLocation(city: string) {
@@ -127,13 +123,6 @@ const HomeScreen = () => {
         source={require('../assets/bg.png')}
         style={styles.background}>
         <SafeAreaView style={{flex: 1}}>
-          {/* <View>
-            <Text style={{color: 'yellow'}}>
-              {isLocationOn && 'location on'}
-            </Text>
-            <Text style={{color: 'yellow'}}>{coordinates.long}</Text>
-            <Text style={{color: 'yellow'}}>{coordinates.lat}</Text>
-          </View> */}
           <View
             style={[
               styles.searchbar,
@@ -284,12 +273,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     textAlign: 'center',
     justifyContent: 'center',
-    height: 40,
+    height: 48,
   },
   searchIcon: {
     fontSize: 20,
     color: Colors.white,
-    backgroundColor: Colors.bgWhite(0.2),
+    backgroundColor: Colors.bgWhite(0.5),
     padding: 5,
     borderRadius: 100,
   },
