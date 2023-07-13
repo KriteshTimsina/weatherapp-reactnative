@@ -5,34 +5,31 @@ import {
   ImageBackground,
   StyleSheet,
   Image,
-  Button,
-  TouchableHighlight,
   TouchableOpacity,
-  KeyboardAvoidingView,
   ScrollView,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors} from '../constants/constants';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import SearchIcon from 'react-native-vector-icons/Ionicons';
-import {ILocation, IWeather, RootStackParamList} from '../types/types';
+import {ILocation, IWeather} from '../types/types';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {fetchLocations, fetchWeather} from '../helpers/fetchData';
 import {getItem, storeData} from '../helpers/storeData';
 import DialyForecast from '../components/DialyForecast';
-
-type HomeProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
   const [input, setInput] = useState<string>('');
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
   const [weather, setWeather] = useState<IWeather[]>([]);
   const [locations, setLocations] = useState<ILocation[]>([]);
-  console.log(weather);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
 
   async function handleInput(value: string) {
     setInput(value);
@@ -45,18 +42,37 @@ const HomeScreen = () => {
 
   async function handleSearch() {
     setShowSearchBar(!showSearchBar);
+    setLoading(true);
     const weather = await fetchWeather({location: input});
     setWeather(weather);
+    setLoading(false);
   }
 
   async function handleLocation(city: string) {
     setLocations([]);
-    fetchWeather({location: city}).then(data => {
-      setWeather(data);
+    fetchLocations({cityName: city}).then(data => {
+      setLocations(data);
     });
     await storeData('city', city);
-    console.log(weather);
   }
+
+  useEffect(() => {
+    async function requestLocationPermission() {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          setIsLocationOn(true);
+        } else {
+          setIsLocationOn(false);
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+    requestLocationPermission();
+  }, []);
 
   useEffect(() => {
     async function fetchWeatherOnStart() {
@@ -68,11 +84,11 @@ const HomeScreen = () => {
       setWeather(weather);
     }
     fetchWeatherOnStart();
-    console.log(weather);
   }, []);
 
   const {current, location} = weather;
   // console.log(current.condition.icon, typeof current.condition.icon);
+
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -124,64 +140,74 @@ const HomeScreen = () => {
               })}
           </View>
 
-          <View style={styles.weatherInfo}>
-            <View>
-              {location && (
-                <Text style={styles.address}>
-                  {location?.name ?? 'hji'},
-                  <Text style={styles.country}>
-                    {' '}
-                    {location?.country ?? 'hi'}
+          {location && (
+            <>
+              <View style={styles.weatherInfo}>
+                <View>
+                  <Text style={styles.address}>
+                    {location?.name ?? 'hji'},
+                    <Text style={styles.country}>
+                      {location?.country ?? 'hi'}
+                    </Text>
                   </Text>
-                </Text>
-              )}
-            </View>
-            <View>
-              <Image
-                height={100}
-                source={{uri: 'https:' + current?.condition?.icon}}
-                width={100}
-              />
-            </View>
-            {location && (
-              <View style={styles.weatherData}>
-                <Text style={styles.temp}>{current?.temp_c}&#176;</Text>
-                <Text style={styles.situation}>{current?.condition?.text}</Text>
+                </View>
+                <View>
+                  <Image
+                    height={100}
+                    source={{uri: 'https:' + current?.condition?.icon}}
+                    width={100}
+                  />
+                </View>
+
+                <View style={styles.weatherData}>
+                  <Text style={styles.temp}>{current?.temp_c}&#176;</Text>
+                  <Text style={styles.situation}>
+                    {current?.condition?.text}
+                  </Text>
+                </View>
+
+                {/* //humidity and sunrise */}
+
+                <View style={styles.conditionContainer}>
+                  <View style={styles.condition}>
+                    <FeatherIcon color="white" name="wind" size={25} />
+                    <Text style={styles.conditionText}>
+                      {current?.wind_kph}km
+                    </Text>
+                  </View>
+                  <View style={styles.condition}>
+                    <EntypoIcon color="white" name="drop" size={25} />
+                    <Text style={styles.conditionText}>
+                      {current?.humidity}%
+                    </Text>
+                  </View>
+                  <View style={styles.condition}>
+                    <FeatherIcon color="white" name="sun" size={25} />
+                    <Text style={styles.conditionText}>
+                      {weather?.forecast?.forecastday[0]?.astro?.sunrise}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* dilay forecast */}
               </View>
-            )}
-            {/* //humidity and sunrise */}
-            <View style={styles.conditionContainer}>
-              <View style={styles.condition}>
-                <FeatherIcon color="white" name="wind" size={25} />
-                <Text style={styles.conditionText}>{current?.wind_kph}km</Text>
+
+              <View style={styles.dialyForecast}>
+                <View style={styles.forecastTitle}>
+                  <Icon color={'white'} name="calendar" size={25} />
+                  <Text style={styles.forecastText}>Dialy Forecast</Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  contentContainerStyle={{paddingHorizontal: 15}}
+                  showsHorizontalScrollIndicator={false}>
+                  {weather?.forecast?.forecastday?.map((item, index) => {
+                    return <DialyForecast key={index} item={item} />;
+                  })}
+                </ScrollView>
               </View>
-              <View style={styles.condition}>
-                <EntypoIcon color="white" name="drop" size={25} />
-                <Text style={styles.conditionText}>{current?.humidity}%</Text>
-              </View>
-              <View style={styles.condition}>
-                <FeatherIcon color="white" name="sun" size={25} />
-                <Text style={styles.conditionText}>
-                  {weather?.forecast?.forecastday[0]?.astro?.sunrise}
-                </Text>
-              </View>
-            </View>
-            {/* dilay forecast */}
-          </View>
-          <View style={styles.dialyForecast}>
-            <View style={styles.forecastTitle}>
-              <Icon color={'white'} name="calendar" size={25} />
-              <Text style={styles.forecastText}>Dialy Forecast</Text>
-            </View>
-            <ScrollView
-              horizontal
-              contentContainerStyle={{paddingHorizontal: 15}}
-              showsHorizontalScrollIndicator={false}>
-              {weather?.forecast?.forecastday?.map((item, index) => {
-                return <DialyForecast key={index} item={item} />;
-              })}
-            </ScrollView>
-          </View>
+            </>
+          )}
         </SafeAreaView>
       </ImageBackground>
     </View>
