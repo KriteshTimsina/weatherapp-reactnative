@@ -32,7 +32,10 @@ const HomeScreen = () => {
   const [locations, setLocations] = useState<ILocation[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
-  const [coordinates, setCoordinates] = useState<any>();
+  const [coordinates, setCoordinates] = useState<any>({
+    long: 1,
+    lat: 2,
+  });
 
   async function handleInput(value: string) {
     setInput(value);
@@ -43,19 +46,20 @@ const HomeScreen = () => {
     }
   }
 
-  async function handleSearch() {
+  async function handleSearchToggle() {
     setShowSearchBar(!showSearchBar);
-    setLoading(true);
-    const weather = await fetchWeather({location: input});
-    setWeather(weather);
-    setLoading(false);
+    // setLoading(true);
+    // const weather = await fetchWeather({location: input});
+    // setWeather(weather);
+    // setLoading(false);
   }
 
   async function handleLocation(city: string) {
     setLocations([]);
-    fetchLocations({cityName: city}).then(data => {
-      setLocations(data);
+    fetchWeather({location: city}).then(data => {
+      setWeather(data);
     });
+
     await storeData('city', city);
   }
 
@@ -95,9 +99,12 @@ const HomeScreen = () => {
         console.log('eroror bajsjk', err);
       }
     }
-    requestLocationPermission();
+    // requestLocationPermission();
   }, []);
 
+  useEffect(() => {
+    console.log(locations);
+  }, [input]);
   useEffect(() => {
     async function fetchWeatherOnStart() {
       const city = await getItem('city');
@@ -120,13 +127,13 @@ const HomeScreen = () => {
         source={require('../assets/bg.png')}
         style={styles.background}>
         <SafeAreaView style={{flex: 1}}>
-          <View>
+          {/* <View>
             <Text style={{color: 'yellow'}}>
               {isLocationOn && 'location on'}
             </Text>
             <Text style={{color: 'yellow'}}>{coordinates.long}</Text>
             <Text style={{color: 'yellow'}}>{coordinates.lat}</Text>
-          </View>
+          </View> */}
           <View
             style={[
               styles.searchbar,
@@ -145,7 +152,7 @@ const HomeScreen = () => {
             />
             <TouchableOpacity
               activeOpacity={0.3}
-              onPress={handleSearch}
+              onPress={handleSearchToggle}
               style={styles.searchButton}>
               <SearchIcon
                 style={styles.searchIcon}
