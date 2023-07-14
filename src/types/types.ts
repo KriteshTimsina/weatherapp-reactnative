@@ -20,5 +20,5 @@ export type IWeather = {
 
 export type RootStackParamList = {
   Home: undefined;
-  Weather: undefined;
+  Splash: undefined;
 };

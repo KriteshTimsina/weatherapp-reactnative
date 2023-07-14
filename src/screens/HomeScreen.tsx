@@ -15,14 +15,12 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors} from '../constants/constants';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import SearchIcon from 'react-native-vector-icons/Ionicons';
-import {ILocation, IWeather} from '../types/types';
+import {ICurrent, ILocation, IWeather} from '../types/types';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
-
 import {fetchLocations, fetchWeather} from '../helpers/fetchData';
 import {getItem, storeData} from '../helpers/storeData';
 import DialyForecast from '../components/DialyForecast';
-
 import Geolocation from '@react-native-community/geolocation';
 
 const HomeScreen = () => {
@@ -30,12 +28,12 @@ const HomeScreen = () => {
   const [showSearchBar, setShowSearchBar] = useState<boolean>(false);
   const [weather, setWeather] = useState<IWeather[]>([]);
   const [locations, setLocations] = useState<ILocation[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
-  const [coordinates, setCoordinates] = useState<any>({
-    long: 1,
-    lat: 2,
-  });
+  // const [loading, setLoading] = useState<boolean>(false);
+  // const [isLocationOn, setIsLocationOn] = useState<boolean>(false);
+  // const [coordinates, setCoordinates] = useState<any>({
+  //   long: 1,
+  //   lat: 2,
+  // });
 
   async function handleInput(value: string) {
     setInput(value);
@@ -59,48 +57,45 @@ const HomeScreen = () => {
     await storeData('city', city);
   }
 
-  const getOneTimeLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        //Setting Longitude state
-        setCoordinates({
-          long: position.coords.longitude,
-          lat: position.coords.latitude,
-        });
-      },
-      error => {
-        console.log(error);
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 30000,
-        maximumAge: 1000,
-      },
-    );
-  };
+  // const getOneTimeLocation = () => {
+  //   Geolocation.getCurrentPosition(
+  //     position => {
+  //       //Setting Longitude state
+  //       setCoordinates({
+  //         long: position.coords.longitude,
+  //         lat: position.coords.latitude,
+  //       });
+  //     },
+  //     error => {
+  //       console.log(error);
+  //     },
+  //     {
+  //       enableHighAccuracy: false,
+  //       timeout: 30000,
+  //       maximumAge: 1000,
+  //     },
+  //   );
+  // };
 
-  useEffect(() => {
-    async function requestLocationPermission() {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          setIsLocationOn(true);
-          getOneTimeLocation();
-        } else {
-          setIsLocationOn(false);
-        }
-      } catch (err) {
-        console.log('eroror bajsjk', err);
-      }
-    }
-    // requestLocationPermission();
-  }, []);
+  // useEffect(() => {
+  //   async function requestLocationPermission() {
+  //     try {
+  //       const granted = await PermissionsAndroid.request(
+  //         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  //       );
+  //       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+  //         setIsLocationOn(true);
+  //         getOneTimeLocation();
+  //       } else {
+  //         setIsLocationOn(false);
+  //       }
+  //     } catch (err) {
+  //       console.log('eroror bajsjk', err);
+  //     }
+  //   }
+  //   // requestLocationPermission();
+  // }, []);
 
-  useEffect(() => {
-    console.log(locations);
-  }, [input]);
   useEffect(() => {
     async function fetchWeatherOnStart() {
       const city = await getItem('city');
@@ -113,8 +108,7 @@ const HomeScreen = () => {
     fetchWeatherOnStart();
   }, []);
 
-  const {current, location} = weather;
-  // console.log(current.condition.icon, typeof current.condition.icon);
+  const {current, location, forecast}: any = weather;
 
   return (
     <View style={styles.container}>
@@ -211,7 +205,7 @@ const HomeScreen = () => {
                   <View style={styles.condition}>
                     <FeatherIcon color="white" name="sun" size={25} />
                     <Text style={styles.conditionText}>
-                      {weather?.forecast?.forecastday[0]?.astro?.sunrise}
+                      {forecast?.forecastday[0]?.astro?.sunrise}
                     </Text>
                   </View>
                 </View>
@@ -228,7 +222,7 @@ const HomeScreen = () => {
                   horizontal
                   contentContainerStyle={{paddingHorizontal: 15}}
                   showsHorizontalScrollIndicator={false}>
-                  {weather?.forecast?.forecastday?.map((item, index) => {
+                  {forecast?.forecastday?.map((item: any, index: number) => {
                     return <DialyForecast key={index} item={item} />;
                   })}
                 </ScrollView>
