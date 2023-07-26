@@ -1,5 +1,5 @@
 <body>
-  <a href="https://neststore.netlify.app/">Daily Weather </a>
+  <a>Daily Weather </a>
   <p>A simple weather app built with react native</p>
   <h2>Table of Contents</h2>
   <ul>
