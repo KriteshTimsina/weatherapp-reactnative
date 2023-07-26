@@ -21,8 +21,7 @@
   <h2>Technologies</h2>
   <ul>
     <li>React Native</li>
-    <li>Open Weather Api<li>
-    <li>Context API</li>
+    <li>Open Weather Api<li><li>Context API</li>
   </ul> 
 </body>
 
