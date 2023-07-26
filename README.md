@@ -23,7 +23,6 @@
     <li>React Native</li>
     <li>Open Weather Api<li>
     <li>Context API</li>
-  </ul>
-  
+  </ul> 
 </body>
 
