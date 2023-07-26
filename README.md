@@ -9,7 +9,7 @@
   </ul>
   <h2>Installation</h2>
   <p>To use this app, first clone or fetch the repository:</p>
-  <pre><code>git clone https://github.com/KriteshTimsina/nestnepal-frontend-NestStore.git</code></pre>
+  <pre><code>git clone https://github.com/KriteshTimsina/weatherapp-reactnative.git</code></pre>
   <p>Then, navigate to the project directory and install the dependencies:</p>
   <pre><code>cd weatherapp-reactnative 
      npm install
